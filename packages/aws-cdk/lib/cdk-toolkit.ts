@@ -143,7 +143,10 @@ export class CdkToolkit {
     const stackCollection = await this.selectStacksForDeploy(options.selector, options.exclusively, options.cacheCloudAssembly);
     const elapsedSynthTime = new Date().getTime() - startSynthTime;
     print('\n✨  Synthesis time: %ss\n', formatTime(elapsedSynthTime));
-
+    print('Deploy order:');
+    stackCollection.stackIds.forEach((stack, index) => {
+      print(`${index + 1} - ${stack}`);
+    });
     const requireApproval = options.requireApproval ?? RequireApproval.Broadening;
 
     const parameterMap: { [name: string]: { [name: string]: string | undefined } } = { '*': {} };
@@ -228,8 +231,7 @@ export class CdkToolkit {
         }
       }
 
-      const stackIndex = stacks.indexOf(stack)+1;
-      print('%s: deploying... [%s/%s]', chalk.bold(stack.displayName), stackIndex, stackCollection.stackCount);
+      print('%s: deploying...', chalk.bold(stack.displayName));
       const startDeployTime = new Date().getTime();
 
       let tags = options.tags;
@@ -505,8 +507,8 @@ export class CdkToolkit {
     }
 
     const action = options.fromDeploy ? 'deploy' : 'destroy';
-    for (const [index, stack] of stacks.stackArtifacts.entries()) {
-      success('%s: destroying... [%s/%s]', chalk.blue(stack.displayName), index+1, stacks.stackCount);
+    for (const stack of stacks.stackArtifacts) {
+      success('%s: destroying...', chalk.blue(stack.displayName));
       try {
         await this.props.cloudFormation.destroyStack({
           stack,
